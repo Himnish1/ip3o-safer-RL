@@ -1,0 +1,18 @@
+env_id: SafetyPointGoal1-v0
+algorithm: ppo_lag
+seed: 0
+epochs: 5
+steps_per_epoch: 256
+gamma: 0.99
+gae_lambda: 0.95
+hidden_sizes: [128, 128]
+log_path: ip3o_logs/ppo_lag_metrics.csv
+algorithm_config:
+  clip_ratio: 0.2
+  policy_lr: 0.0003
+  value_lr: 0.001
+  train_iters: 10
+  target_kl: 0.015
+  entropy_coef: 0.0
+  cost_limit: 25.0
+  lambda_lr: 0.05
