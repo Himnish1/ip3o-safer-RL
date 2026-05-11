@@ -1,4 +1,4 @@
-# ip30-safer-RL
+# ip3o-safer-RL
 
 This repository now includes a minimal, from-scratch IP3O (Incrementally Penalized PPO) implementation for Safety-Gymnasium `SafetyPointGoal1-v0` using PyTorch, with automatic MPS selection when available.
 
