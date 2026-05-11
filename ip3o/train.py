@@ -62,7 +62,12 @@ def train(config_path: str):
             if done:
                 obs, _ = env.reset()
 
-        batch = buffer.get(device)
+        # Compute bootstrap values from final observation before policy update
+        with torch.no_grad():
+            obs_t = torch.as_tensor(obs, dtype=torch.float32, device=device).unsqueeze(0)
+            _, _, last_vr, last_vc = ac.act(obs_t)
+
+        batch = buffer.get(device, last_vr=last_vr.item(), last_vc=last_vc.item())
         info = agent.update(batch)
         logger.log(epoch=epoch, mean_reward=batch["reward_returns"].mean().item(), mean_cost=batch["cost_returns"].mean().item(), **info)
         buffer.clear()

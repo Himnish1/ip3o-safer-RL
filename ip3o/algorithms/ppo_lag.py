@@ -13,6 +13,7 @@ class PPOLagConfig:
     value_lr: float = 1e-3
     train_iters: int = 10
     target_kl: float = 0.015
+    kl_lower: float = 0.0
     entropy_coef: float = 0.0
     cost_limit: float = 25.0
     lambda_lr: float = 0.05
@@ -48,15 +49,25 @@ class PPOLagrangian:
 
     def update(self, batch):
         info = {}
+        policy_loss = None
+        value_loss = None
+
+        # Phase 1: Update value functions (step 6 of algorithm)
+        for _ in range(self.cfg.train_iters):
+            self.optimizer.zero_grad()
+            value_loss = self._value_loss(batch)
+            value_loss.backward()
+            self.optimizer.step()
+
+        # Phase 2: Inner policy loop (steps 8-15 of algorithm)
         for _ in range(self.cfg.train_iters):
             self.optimizer.zero_grad()
             policy_loss, approx_kl = self._policy_loss(batch)
-            value_loss = self._value_loss(batch)
-            total_loss = policy_loss + value_loss
-            total_loss.backward()
+            policy_loss.backward()
             self.optimizer.step()
             info["kl"] = float(approx_kl.item())
-            if approx_kl > self.cfg.target_kl:
+            # Two-sided KL trust region check: break if KL not in [kl_lower, target_kl]
+            if not (self.cfg.kl_lower <= approx_kl <= self.cfg.target_kl):
                 break
 
         self.update_lagrange_multiplier(batch["cost_returns"].mean())
