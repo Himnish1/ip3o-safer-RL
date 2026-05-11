@@ -13,7 +13,7 @@ class PPOLagConfig:
     value_lr: float = 1e-3
     train_iters: int = 10
     target_kl: float = 0.015
-    kl_lower: float = 0.001
+    kl_lower: float = 0.0
     entropy_coef: float = 0.0
     cost_limit: float = 25.0
     lambda_lr: float = 0.05
