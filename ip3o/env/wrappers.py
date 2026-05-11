@@ -26,9 +26,18 @@ class SafetyGymnasiumWrapper:
         return self.env.reset(**kwargs)
 
     def step(self, action: Any) -> SafetyStep:
-        obs, reward, terminated, truncated, info = self.env.step(action)
-        cost = float(info.get("cost", info.get("cost_sum", 0.0)))
-        return SafetyStep(obs, float(reward), cost, bool(terminated), bool(truncated), info)
+        options = self.env.step(action)
+        if len(options) == 5:
+            obs, reward, terminated, truncated, info = options
+            info = dict(info) if info is not None else {}
+            cost = info.get("cost", info.get("cost_sum", 0.0))
+        elif len(options) == 6:
+            obs, reward, cost, terminated, truncated, info = options
+            info = dict(info) if info is not None else {}
+        else:
+            raise ValueError(f"Expected env.step(action) to return 5 or 6 items, got {len(options)}")
+
+        return SafetyStep(obs, float(reward), float(cost), bool(terminated), bool(truncated), info)
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.env, name)
