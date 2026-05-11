@@ -51,7 +51,7 @@ class RolloutBuffer:
 
     def _gae(self, signal, values):
         signal = np.asarray(signal, dtype=np.float32)
-        values = np.asarray(values + [0.0], dtype=np.float32)
+        values = np.asarray(values, dtype=np.float32)
         dones = np.asarray(self.dones, dtype=np.float32)
 
         deltas = signal + self.gamma * values[1:] * (1.0 - dones) - values[:-1]
@@ -63,9 +63,9 @@ class RolloutBuffer:
         returns = adv + values[:-1]
         return adv, returns
 
-    def get(self, device: torch.device) -> Dict[str, torch.Tensor]:
-        reward_adv, reward_ret = self._gae(self.rewards, self.reward_values)
-        cost_adv, cost_ret = self._gae(self.costs, self.cost_values)
+    def get(self, device: torch.device, last_vr: float = 0.0, last_vc: float = 0.0) -> Dict[str, torch.Tensor]:
+        reward_adv, reward_ret = self._gae(self.rewards, self.reward_values + [last_vr])
+        cost_adv, cost_ret = self._gae(self.costs, self.cost_values + [last_vc])
         reward_adv = (reward_adv - reward_adv.mean()) / (reward_adv.std() + 1e-8)
         cost_adv = (cost_adv - cost_adv.mean()) / (cost_adv.std() + 1e-8)
 
